@@ -1,0 +1,187 @@
+import os
+
+import requests
+from dotenv import load_dotenv
+from terminaltables import AsciiTable
+
+sity_id_Moscow = 4
+catalogue_id_programming = 48
+programming_languages = ["Python", "Java", "JavaScript", "C++", "C#", "PHP",
+                         "Ruby", "Go", "Swift", "Kotlin"]
+
+
+def predict_salary(salary_from, salary_to):
+    if salary_from and salary_to:
+        return (salary_from + salary_to) / 2
+    elif salary_from:
+        return salary_from * 1.2
+    elif salary_to:
+        return salary_to * 0.8
+    return None
+
+
+def predict_rub_salary_hh(vacancy):
+    salary = vacancy.get('salary')
+    if not salary or salary.get('currency') != 'RUR':
+        return None
+    return predict_salary(salary.get('from'), salary.get('to'))
+
+
+def predict_rub_salary_sj(vacancy):
+    if vacancy.get('currency') != 'rub':
+        return None
+    return predict_salary(vacancy.get('payment_from'),
+                          vacancy.get('payment_to'))
+
+
+def get_hh_vacancies(language):
+    url = "https://api.hh.ru/vacancies"
+    params = {
+        'text': language,
+        'area': sity_id_Moscow,
+        'per_page': 100
+    }
+
+    all_vacancies = []
+    page = 0
+
+    while True:
+        params['page'] = page
+        response = requests.get(url, params=params)
+        if response.status_code != 200:
+            print(f"Ошибка: {response.status_code}")
+            break
+
+        data = response.json()
+        vacancies = data.get('items', [])
+        if not vacancies:
+            break
+
+        all_vacancies.extend(vacancies)
+        page += 1
+
+    return all_vacancies
+
+
+def get_superjob_vacancies(api_app_id, keyword):
+    url = "https://api.superjob.ru/2.0/vacancies/"
+    headers = {
+        "X-Api-App-Id": api_app_id
+    }
+    params = {
+        'town': sity_id_Moscow,
+        'catalogues': catalogue_id_programming,
+        'keyword': keyword,
+        'count': 100
+    }
+
+    all_vacancies = []
+    page = 0
+
+    while True:
+        params['page'] = page
+        response = requests.get(url, headers=headers, params=params)
+        if response.status_code != 200:
+            print(f"Ошибка: {response.status_code}")
+            break
+
+        data = response.json()
+        vacancies = data.get('objects', [])
+        if not vacancies:
+            break
+
+        all_vacancies.extend(vacancies)
+        page += 1
+
+    return all_vacancies
+
+
+def calculate_average_salary_hh():
+    language_stats = {}
+
+    for language in programming_languages:
+        vacancies = get_hh_vacancies(language)
+        vacancies_processed = 0
+        total_salary = 0
+
+        for vacancy in vacancies:
+            salary = predict_rub_salary_hh(vacancy)
+            if salary:
+                total_salary += salary
+                vacancies_processed += 1
+
+        average_salary = int(
+            total_salary / vacancies_processed) if vacancies_processed > 0 else None
+        language_stats[language] = {
+            "vacancies_found": len(vacancies),
+            "vacancies_processed": vacancies_processed,
+            "average_salary": average_salary
+        }
+
+    return language_stats
+
+
+def calculate_average_salary_sj(api_app_id):
+    language_stats = {}
+
+    for language in programming_languages:
+        vacancies = get_superjob_vacancies(api_app_id, language)
+        vacancies_processed = 0
+        total_salary = 0
+
+        for vacancy in vacancies:
+            salary = predict_rub_salary_sj(vacancy)
+            if salary:
+                total_salary += salary
+                vacancies_processed += 1
+
+        average_salary = int(
+            total_salary / vacancies_processed) if vacancies_processed > 0 else None
+        language_stats[language] = {
+            "vacancies_found": len(vacancies),
+            "vacancies_processed": vacancies_processed,
+            "average_salary": average_salary
+        }
+
+    return language_stats
+
+
+def print_salary_table(language_stats, title):
+    table_data = [
+        ["Язык программирования", "Найдено вакансий", "Обработано вакансий",
+         "Средняя зарплата"]
+    ]
+
+    for language, stats in language_stats.items():
+        table_data.append([
+            language.lower(),
+            stats['vacancies_found'],
+            stats['vacancies_processed'],
+            stats['average_salary'] if stats[
+                                           'average_salary'] is not None else "Не указана"
+        ])
+
+    table = AsciiTable(table_data)
+    table.title = title
+    print(table.table)
+
+
+def main():
+    load_dotenv()
+    api_app_id = os.getenv('api_app_id')
+
+    if not api_app_id:
+        print("Не удалось загрузить API ключ. Проверьте файл .env")
+        return
+
+    print("Выполняем расчет по HeadHunter...")
+    hh_stats = calculate_average_salary_hh()
+    print_salary_table(hh_stats, "HeadHunter Moscow")
+
+    print("\nВыполняем расчет по SuperJob...")
+    sj_stats = calculate_average_salary_sj(api_app_id)
+    print_salary_table(sj_stats, "SuperJob Moscow")
+
+
+if __name__ == "__main__":
+    main()
