@@ -48,7 +48,7 @@ def get_hh_vacancies(language):
     while True:
         params['page'] = page
         response = requests.get(url, params=params)
-        if response.status_code != 200:
+        if not response.ok:
             print(f"Ошибка: {response.status_code}")
             break
 
@@ -81,7 +81,7 @@ def get_superjob_vacancies(API_KEY_SUPERJOB, keyword):
     while True:
         params['page'] = page
         response = requests.get(url, headers=headers, params=params)
-        if response.status_code != 200:
+        if not response.ok:
             print(f"Ошибка: {response.status_code}")
             break
 
