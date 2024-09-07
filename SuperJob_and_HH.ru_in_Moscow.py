@@ -44,6 +44,7 @@ def get_hh_vacancies(language):
 
     all_vacancies = []
     page = 0
+    total_found = 0
 
     while True:
         params['page'] = page
@@ -53,6 +54,8 @@ def get_hh_vacancies(language):
             break
 
         hh_response = response.json()
+        total_found = hh_response.get('found',
+                                      0)
         vacancies = hh_response.get('items', [])
 
         if not vacancies:
@@ -61,7 +64,7 @@ def get_hh_vacancies(language):
         all_vacancies.extend(vacancies)
         page += 1
 
-    return all_vacancies
+    return all_vacancies, total_found
 
 
 def get_superjob_vacancies(API_KEY_SUPERJOB, keyword):
@@ -78,6 +81,7 @@ def get_superjob_vacancies(API_KEY_SUPERJOB, keyword):
 
     all_vacancies = []
     page = 0
+    total_found = 0
 
     while True:
         params['page'] = page
@@ -87,21 +91,24 @@ def get_superjob_vacancies(API_KEY_SUPERJOB, keyword):
             break
 
         superjob_response = response.json()
-        vacancies = superjob_response.get('items', [])
+        total_found = superjob_response.get('total',
+                                            0)
+        vacancies = superjob_response.get('objects', [])
+
         if not vacancies:
             break
 
         all_vacancies.extend(vacancies)
         page += 1
 
-    return all_vacancies
+    return all_vacancies, total_found
 
 
 def calculate_average_salary_hh():
     language_stats = {}
 
     for language in PROGRAMMING_LANGUAGES:
-        vacancies = get_hh_vacancies(language)
+        vacancies, total_found = get_hh_vacancies(language)
         vacancies_processed = 0
         total_salary = 0
 
@@ -115,7 +122,7 @@ def calculate_average_salary_hh():
             total_salary / vacancies_processed) if vacancies_processed else None
 
         language_stats[language] = {
-            "vacancies_found": len(vacancies),
+            "vacancies_found": total_found,
             "vacancies_processed": vacancies_processed,
             "average_salary": average_salary
         }
@@ -127,7 +134,8 @@ def calculate_average_salary_sj(api_key_superjob):
     language_stats = {}
 
     for language in PROGRAMMING_LANGUAGES:
-        vacancies = get_superjob_vacancies(api_key_superjob, language)
+        vacancies, total_found = get_superjob_vacancies(api_key_superjob,
+                                                        language)
         vacancies_processed = 0
         total_salary = 0
 
@@ -141,7 +149,7 @@ def calculate_average_salary_sj(api_key_superjob):
             total_salary / vacancies_processed) if vacancies_processed else None
 
         language_stats[language] = {
-            "vacancies_found": len(vacancies),
+            "vacancies_found": total_found,
             "vacancies_processed": vacancies_processed,
             "average_salary": average_salary
         }
