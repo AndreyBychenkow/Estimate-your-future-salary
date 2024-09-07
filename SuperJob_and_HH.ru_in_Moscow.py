@@ -63,10 +63,10 @@ def get_hh_vacancies(language):
     return all_vacancies
 
 
-def get_superjob_vacancies(API_APP_ID, keyword):
+def get_superjob_vacancies(API_KEY_SUPERJOB, keyword):
     url = "https://api.superjob.ru/2.0/vacancies/"
     headers = {
-        "X-Api-App-Id": API_APP_ID
+        "X-Api-App-Id": API_KEY_SUPERJOB
     }
     params = {
         'town': SITY_ID_MOSCOW,
@@ -121,11 +121,11 @@ def calculate_average_salary_hh():
     return language_stats
 
 
-def calculate_average_salary_sj(api_app_id):
+def calculate_average_salary_sj(api_key_superjob):
     language_stats = {}
 
     for language in PROGRAMMING_LANGUAGES:
-        vacancies = get_superjob_vacancies(api_app_id, language)
+        vacancies = get_superjob_vacancies(api_key_superjob, language)
         vacancies_processed = 0
         total_salary = 0
 
@@ -168,9 +168,9 @@ def print_salary_table(language_stats, title):
 
 def main():
     load_dotenv()
-    api_app_id = os.getenv('API_APP_ID')
+    api_key_superjob = os.getenv('API_KEY_SUPERJOB')
 
-    if not api_app_id:
+    if not api_key_superjob:
         print("Не удалось загрузить API ключ. Проверьте файл .env")
         return
 
@@ -179,7 +179,7 @@ def main():
     print_salary_table(hh_stats, "HeadHunter Moscow")
 
     print("\nВыполняем расчет по SuperJob...")
-    sj_stats = calculate_average_salary_sj(api_app_id)
+    sj_stats = calculate_average_salary_sj(api_key_superjob)
     print_salary_table(sj_stats, "SuperJob Moscow")
 
 
