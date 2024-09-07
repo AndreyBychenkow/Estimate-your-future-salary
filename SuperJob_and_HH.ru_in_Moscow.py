@@ -52,8 +52,9 @@ def get_hh_vacancies(language):
             print(f"Ошибка: {response.status_code}")
             break
 
-        data = response.json()
-        vacancies = data.get('items', [])
+        hh_response = response.json()
+        vacancies = hh_response.get('items', [])
+
         if not vacancies:
             break
 
@@ -85,8 +86,8 @@ def get_superjob_vacancies(API_KEY_SUPERJOB, keyword):
             print(f"Ошибка: {response.status_code}")
             break
 
-        data = response.json()
-        vacancies = data.get('objects', [])
+        superjob_response = response.json()
+        vacancies = superjob_response.get('items', [])
         if not vacancies:
             break
 
