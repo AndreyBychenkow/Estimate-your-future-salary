@@ -4,9 +4,9 @@ import requests
 from dotenv import load_dotenv
 from terminaltables import AsciiTable
 
-sity_id_Moscow = 4
-catalogue_id_programming = 48
-programming_languages = ["Python", "Java", "JavaScript", "C++", "C#", "PHP",
+SITY_ID_MOSCOW = 4
+CATALOGUE_ID_PROGRAMMING = 48
+PROGRAMMING_LANGUAGES = ["Python", "Java", "JavaScript", "C++", "C#", "PHP",
                          "Ruby", "Go", "Swift", "Kotlin"]
 
 
@@ -38,7 +38,7 @@ def get_hh_vacancies(language):
     url = "https://api.hh.ru/vacancies"
     params = {
         'text': language,
-        'area': sity_id_Moscow,
+        'area': SITY_ID_MOSCOW,
         'per_page': 100
     }
 
@@ -63,14 +63,14 @@ def get_hh_vacancies(language):
     return all_vacancies
 
 
-def get_superjob_vacancies(api_app_id, keyword):
+def get_superjob_vacancies(API_APP_ID, keyword):
     url = "https://api.superjob.ru/2.0/vacancies/"
     headers = {
-        "X-Api-App-Id": api_app_id
+        "X-Api-App-Id": API_APP_ID
     }
     params = {
-        'town': sity_id_Moscow,
-        'catalogues': catalogue_id_programming,
+        'town': SITY_ID_MOSCOW,
+        'catalogues': CATALOGUE_ID_PROGRAMMING,
         'keyword': keyword,
         'count': 100
     }
@@ -99,7 +99,7 @@ def get_superjob_vacancies(api_app_id, keyword):
 def calculate_average_salary_hh():
     language_stats = {}
 
-    for language in programming_languages:
+    for language in PROGRAMMING_LANGUAGES:
         vacancies = get_hh_vacancies(language)
         vacancies_processed = 0
         total_salary = 0
@@ -124,7 +124,7 @@ def calculate_average_salary_hh():
 def calculate_average_salary_sj(api_app_id):
     language_stats = {}
 
-    for language in programming_languages:
+    for language in PROGRAMMING_LANGUAGES:
         vacancies = get_superjob_vacancies(api_app_id, language)
         vacancies_processed = 0
         total_salary = 0
@@ -168,7 +168,7 @@ def print_salary_table(language_stats, title):
 
 def main():
     load_dotenv()
-    api_app_id = os.getenv('api_app_id')
+    api_app_id = os.getenv('API_APP_ID')
 
     if not api_app_id:
         print("Не удалось загрузить API ключ. Проверьте файл .env")
