@@ -112,7 +112,8 @@ def calculate_average_salary_hh():
                 vacancies_processed += 1
 
         average_salary = int(
-            total_salary / vacancies_processed) if vacancies_processed > 0 else None
+            total_salary / vacancies_processed) if vacancies_processed else None
+
         language_stats[language] = {
             "vacancies_found": len(vacancies),
             "vacancies_processed": vacancies_processed,
@@ -137,7 +138,8 @@ def calculate_average_salary_sj(api_key_superjob):
                 vacancies_processed += 1
 
         average_salary = int(
-            total_salary / vacancies_processed) if vacancies_processed > 0 else None
+            total_salary / vacancies_processed) if vacancies_processed else None
+
         language_stats[language] = {
             "vacancies_found": len(vacancies),
             "vacancies_processed": vacancies_processed,
